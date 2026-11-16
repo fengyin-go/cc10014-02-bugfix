@@ -13,6 +13,7 @@ from app.routers import auth as router_auth
 from app.routers import monitor as router_monitor
 from app.routers import consumer as router_consumer
 from app.routers import version as router_version
+from app.routers import migration as router_migration
 from app.routers import cache as router_cache
 from app.routers import transform as router_transform
 from app.routers import gateway as router_gateway
@@ -25,4 +26,4 @@ from app.routers import mock as router_mock
 from app.routers import backup as router_backup
 from app.routers import notify as router_notify
 
-ROUTERS = [router_service, router_flow, router_ratelimit, router_auth, router_monitor, router_consumer, router_version, router_cache, router_transform, router_gateway, router_schema, router_datasource, router_query, router_cleanse, router_log, router_mock, router_backup, router_notify]
+ROUTERS = [router_service, router_flow, router_ratelimit, router_auth, router_monitor, router_consumer, router_version, router_migration, router_cache, router_transform, router_gateway, router_schema, router_datasource, router_query, router_cleanse, router_log, router_mock, router_backup, router_notify]

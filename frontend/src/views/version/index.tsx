@@ -24,29 +24,31 @@ const statuses = [
   "全量发布",
   "已回滚"
 ]
-const stats = [
-  {
-    "label": "版本记录总数",
-    "value": 0
-  },
-  {
-    "label": "全量版本",
-    "value": 0
-  },
-  {
-    "label": "灰度版本",
-    "value": 0
-  }
-]
 
-type Row = Record<string, string | number | null>
+type Row = Record<string, unknown>
+
+function cellText(value: unknown): string {
+  if (value === null || value === undefined || value === '') return '—'
+  if (Array.isArray(value)) return value.join('、')
+  if (typeof value === 'object') return JSON.stringify(value)
+  return String(value)
+}
 
 export default function VersionView() {
   const [rows, setRows] = useState<Row[]>([])
   const [total, setTotal] = useState(0)
   const [errorMessage, setErrorMessage] = useState('')
+  const [notice, setNotice] = useState('')
   const [filters, setFilters] = useState<Record<string, string>>({})
+  const [showForm, setShowForm] = useState(false)
+  const [formValues, setFormValues] = useState<Record<string, string>>({})
   const filterFields = useMemo(() => columns.slice(0, 3), [])
+
+  const stats = useMemo(() => ([
+    { label: '版本记录总数', value: total },
+    { label: '全量版本', value: rows.filter((row) => row.status === '全量发布').length },
+    { label: '灰度版本', value: rows.filter((row) => row.status === '灰度中').length },
+  ]), [rows, total])
 
   const reload = useCallback(async () => {
     setErrorMessage('')
@@ -70,17 +72,41 @@ export default function VersionView() {
 
   async function runAction(action: string, row: Row) {
     setErrorMessage('')
+    setNotice('')
     try {
       const response = await request(`${ENDPOINT}/${row.id}/actions`, {
         method: 'POST',
-        body: JSON.stringify({ action }),
+        body: JSON.stringify({ values: { action } }),
       })
-      if (!response.ok) {
-        throw new Error('版本管理动作未生效，请稍后重试')
+      const payload = await response.json()
+      if (!response.ok || !payload.ok) {
+        throw new Error(payload.message || '版本管理动作未生效，请稍后重试')
       }
+      setNotice(payload.message || `版本记录已${action}`)
       await reload()
     } catch (error) {
       setErrorMessage(error instanceof Error ? error.message : '版本管理操作失败')
+    }
+  }
+
+  async function submitForm() {
+    setErrorMessage('')
+    setNotice('')
+    try {
+      const response = await request(ENDPOINT, {
+        method: 'POST',
+        body: JSON.stringify({ values: formValues }),
+      })
+      const payload = await response.json()
+      if (!response.ok || !payload.ok) {
+        throw new Error(payload.message || '版本记录登记失败')
+      }
+      setNotice(`版本记录已登记：${cellText(payload.entry?.['版本号'])}，兼容性标识、灰度比例、回滚脚本已一并保存`)
+      setFormValues({})
+      setShowForm(false)
+      await reload()
+    } catch (error) {
+      setErrorMessage(error instanceof Error ? error.message : '版本记录登记失败')
     }
   }
 
@@ -92,7 +118,7 @@ export default function VersionView() {
           <p className="page-desc">维护版本管理的输入、执行约束与结果记录，为版本管理提供可验证的数据工程流程。</p>
         </div>
         <div className="page-actions">
-          <button className="btn primary" type="button" onClick={() => setErrorMessage('版本记录登记入口尚未接入审批流')}>
+          <button className="btn primary" type="button" onClick={() => setShowForm((prev) => !prev)}>
             登记版本记录
           </button>
           <button className="btn" type="button" onClick={() => window.open(`${ENDPOINT}/export`, '_blank')}>
@@ -100,6 +126,28 @@ export default function VersionView() {
           </button>
         </div>
       </header>
+
+      {showForm && (
+        <form
+          className="panel"
+          onSubmit={(event) => { event.preventDefault(); void submitForm() }}
+        >
+          <h3>登记版本记录</h3>
+          <div className="form-grid">
+            {columns.map((field) => (
+              <label key={field} className="filter-item">
+                <span>{field}</span>
+                <input
+                  value={formValues[field] ?? ''}
+                  placeholder={`填写${field}`}
+                  onChange={(event) => setFormValues((prev) => ({ ...prev, [field]: event.target.value }))}
+                />
+              </label>
+            ))}
+          </div>
+          <button className="btn primary" type="submit">提交登记</button>
+        </form>
+      )}
 
       <div className="stat-row">
         {stats.map((item) => (
@@ -135,7 +183,7 @@ export default function VersionView() {
         <tbody>
           {rows.map((row) => (
             <tr key={String(row.id)}>
-              {columns.map((column) => <td key={column}>{row[column] ?? '—'}</td>)}
+              {columns.map((column) => <td key={column}>{cellText(row[column])}</td>)}
               <td className="row-actions">
                 {actions.map((action) => (
                   <button key={action} className="link" type="button" onClick={() => void runAction(action, row)}>
@@ -155,6 +203,7 @@ export default function VersionView() {
 
       <footer className="page-foot">
         <span>共 {total} 条版本管理记录</span>
+        {notice && <span className="ok-text">{notice}</span>}
         {errorMessage && <span className="error-text">{errorMessage}</span>}
       </footer>
     </section>

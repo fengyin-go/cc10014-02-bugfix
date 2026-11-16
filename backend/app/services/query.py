@@ -7,6 +7,8 @@ from app.store import store
 
 MODULE = "query"
 REQUIRED_FIELDS = ["定义编号", "关联数据源", "查询模板"]
+# 结果字段、参数占位等是版本迁移读取查询定义时的依据，登记时必须一并保留。
+OPTIONAL_FIELDS = ["参数占位", "结果字段", "排序规则", "分页大小", "超时秒数"]
 STATUS_ORDER = ["草稿", "待校验", "已启用", "已停用"]
 ACTION_RULES = {"提交校验": "待校验", "启用查询": "已启用", "停用查询": "已停用"}
 NEGATIVE_ACTIONS = ["停用查询"]
@@ -39,7 +41,7 @@ class QueryService:
             return None, missing
         rows = store.rows(MODULE)
         entry = {"id": max((int(row.get("id", 0)) for row in rows), default=0) + 1}
-        entry.update({field: values.get(field) for field in REQUIRED_FIELDS})
+        entry.update({field: values.get(field) for field in REQUIRED_FIELDS + OPTIONAL_FIELDS if field in values})
         entry["status"] = STATUS_ORDER[0]
         entry["pending"] = True
         entry["abnormal"] = False

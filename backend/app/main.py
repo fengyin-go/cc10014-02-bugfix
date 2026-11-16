@@ -10,9 +10,11 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.config import settings
 from app.routers import ROUTERS
+from app.services.version import VersionService
 from app.store import store
 
 app = FastAPI(title="数据服务编排发布平台", version="1.0.0")
+version_service = VersionService()
 
 app.add_middleware(
     CORSMiddleware,
@@ -34,5 +36,10 @@ def health() -> dict[str, object]:
 
 @app.get("/api/overview")
 def overview() -> dict[str, object]:
-    """运营概览：把各业务模块的待处理量汇总成看板卡片。"""
-    return store.overview()
+    """运营概览：把各业务模块的待处理量汇总成看板卡片，并同步数据版本契约。"""
+    payload = store.overview()
+    contract = version_service.current_contract()
+    # 看板排列当前契约的新字段清单，历史版本（含旧版本）也一并列出
+    payload["数据版本契约"] = contract.get("当前契约")
+    payload["版本字段清单"] = contract.get("历史版本", [])
+    return payload

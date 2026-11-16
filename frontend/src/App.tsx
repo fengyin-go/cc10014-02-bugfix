@@ -9,6 +9,7 @@ import AuthView from './views/auth'
 import MonitorView from './views/monitor'
 import ConsumerView from './views/consumer'
 import VersionView from './views/version'
+import MigrationView from './views/migration'
 import CacheView from './views/cache'
 import TransformView from './views/transform'
 import GatewayView from './views/gateway'
@@ -21,7 +22,7 @@ import MockView from './views/mock'
 import BackupView from './views/backup'
 import NotifyView from './views/notify'
 
-const navItems = [{ label: "运营概览", path: "/" }, { label: "服务注册", path: "/service" }, { label: "查询编排", path: "/flow" }, { label: "接口限流", path: "/ratelimit" }, { label: "鉴权管理", path: "/auth" }, { label: "服务监控", path: "/monitor" }, { label: "消费方登记", path: "/consumer" }, { label: "版本管理", path: "/version" }, { label: "结果缓存", path: "/cache" }, { label: "响应转换", path: "/transform" }, { label: "网关路由", path: "/gateway" }, { label: "接口文档", path: "/schema" }, { label: "数据源配置", path: "/datasource" }, { label: "数据查询", path: "/query" }, { label: "数据清洗", path: "/cleanse" }, { label: "调用日志", path: "/log" }, { label: "模拟数据", path: "/mock" }, { label: "数据备份", path: "/backup" }, { label: "事件通知", path: "/notify" }]
+const navItems = [{ label: "运营概览", path: "/" }, { label: "服务注册", path: "/service" }, { label: "查询编排", path: "/flow" }, { label: "接口限流", path: "/ratelimit" }, { label: "鉴权管理", path: "/auth" }, { label: "服务监控", path: "/monitor" }, { label: "消费方登记", path: "/consumer" }, { label: "版本管理", path: "/version" }, { label: "版本迁移", path: "/migration" }, { label: "结果缓存", path: "/cache" }, { label: "响应转换", path: "/transform" }, { label: "网关路由", path: "/gateway" }, { label: "接口文档", path: "/schema" }, { label: "数据源配置", path: "/datasource" }, { label: "数据查询", path: "/query" }, { label: "数据清洗", path: "/cleanse" }, { label: "调用日志", path: "/log" }, { label: "模拟数据", path: "/mock" }, { label: "数据备份", path: "/backup" }, { label: "事件通知", path: "/notify" }]
 
 export default function App() {
   const [operator] = useState('值班管理员')
@@ -52,6 +53,7 @@ export default function App() {
           <Route path="/monitor" element={<MonitorView />} />
           <Route path="/consumer" element={<ConsumerView />} />
           <Route path="/version" element={<VersionView />} />
+          <Route path="/migration" element={<MigrationView />} />
           <Route path="/cache" element={<CacheView />} />
           <Route path="/transform" element={<TransformView />} />
           <Route path="/gateway" element={<GatewayView />} />
